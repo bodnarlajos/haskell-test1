@@ -6,7 +6,7 @@ import Db ( Db(Db) )
 
 someFunc :: IO ()
 someFunc = do
-    let (Db str) = getFromDb2
+    let (Db str) = getFromDb2 <> getFromDb
     putStrLn str
 
 getFromDb :: Db String
