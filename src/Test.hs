@@ -1,6 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 
 module Test where
+import Debug.Trace (trace)
 
 newtype TestMonad i e a = TestMonad { runTestMonad :: i -> e -> Maybe a }
 
@@ -31,7 +32,7 @@ test = case runTestMonad (test3 'c') 'a' 'b' of
   Nothing -> Nothing
   Just s -> case runTestMonad test2 'c' 'd' of
     Nothing -> Nothing
-    Just s' -> Just $ s ++ s'
+    Just s' -> Just $ (trace ("\n1: " ++ s) s) ++ (trace ("\n2: " ++ s') s')
   
 fvTestMonad :: IO ()
 fvTestMonad = let res = test
