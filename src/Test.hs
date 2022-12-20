@@ -1,7 +1,6 @@
 {-# LANGUAGE InstanceSigs #-}
 
 module Test where
-import Data.Type.Bool (Not)
 
 newtype TestMonad i e a = TestMonad { runTestMonad :: i -> e -> Maybe a }
 
@@ -21,14 +20,14 @@ instance Applicative (TestMonad i e) where
                 Nothing -> Nothing
                 Just fv' -> Just $ fv' a'
 
-test3 :: TestMonad Char Char [Char]
-test3 = TestMonad $ \a b -> Just $ a : [b]
+test3 :: Char -> TestMonad Char Char [Char]
+test3 c = TestMonad $ \a b -> Just $ a : c : [b]
 
 test2 :: TestMonad Char Char [Char]
 test2 = TestMonad $ \a b -> Just $ (a : [b]) ++ [a]
 
 test :: Maybe [Char]
-test = case runTestMonad test3 'a' 'b' of
+test = case runTestMonad (test3 'c') 'a' 'b' of
   Nothing -> Nothing
   Just s -> case runTestMonad test2 'c' 'd' of
     Nothing -> Nothing
@@ -37,3 +36,7 @@ test = case runTestMonad test3 'a' 'b' of
 fvTestMonad :: IO ()
 fvTestMonad = let res = test
                 in print res
+
+-- testSeq :: Eq i => [Char] -> TestMonad i e [Char]
+-- testSeq [] = pure []
+-- testSeq (x : xs) = _ <$> test2
