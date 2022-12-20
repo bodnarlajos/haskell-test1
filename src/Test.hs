@@ -27,12 +27,13 @@ test3 = TestMonad $ \a b -> Just $ a : [b]
 test2 :: TestMonad Char Char [Char]
 test2 = TestMonad $ \a b -> Just $ (a : [b]) ++ [a]
 
-test = case test3 of
+test :: Maybe [Char]
+test = case runTestMonad test3 'a' 'b' of
   Nothing -> Nothing
-  Just a' -> case test2 of
+  Just s -> case runTestMonad test2 'c' 'd' of
     Nothing -> Nothing
-    Just a'' -> Just $ a ++ a''
-
+    Just s' -> Just $ s ++ s'
+  
 fvTestMonad :: IO ()
-fvTestMonad = let res = runTestMonad test 'a' 'b'
+fvTestMonad = let res = test
                 in print res
