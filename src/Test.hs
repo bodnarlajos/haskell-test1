@@ -1,6 +1,6 @@
 {-# LANGUAGE InstanceSigs #-}
 
-module Test where
+module Test(fvTestMonad, test4) where
 import Debug.Trace (trace)
 
 newtype TestMonad i e a = TestMonad { runTestMonad :: i -> e -> Maybe a }
@@ -38,6 +38,6 @@ fvTestMonad :: IO ()
 fvTestMonad = let res = test
                 in print res
 
--- testSeq :: Eq i => [Char] -> TestMonad i e [Char]
--- testSeq [] = pure []
--- testSeq (x : xs) = _ <$> test2
+test4 :: [Maybe [Char]]
+test4 = foldr (\a res -> let r = runTestMonad a 'a' 'b'
+                            in res ++ [r]) [] [test3 'g', test2]
