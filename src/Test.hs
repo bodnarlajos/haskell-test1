@@ -1,4 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Test(fvTestMonad, test4) where
 import Debug.Trace (trace)
@@ -24,6 +25,9 @@ instance Applicative (TestMonad i e) where
 test3 :: Char -> TestMonad Char Char [Char]
 test3 c = TestMonad $ \a b -> Just $ a : c : [b]
 
+testStr :: TestMonad Char Char [String]
+testStr = TestMonad $ \a b -> Just [a : [b]]
+
 test2 :: TestMonad Char Char [Char]
 test2 = TestMonad $ \a b -> Just $ (a : [b]) ++ [a]
 
@@ -32,12 +36,20 @@ test = case runTestMonad (test3 'c') 'a' 'b' of
   Nothing -> Nothing
   Just s -> case runTestMonad test2 'c' 'd' of
     Nothing -> Nothing
-    Just s' -> Just $ (trace ("\n1: " ++ s) s) ++ (trace ("\n2: " ++ s') s')
-  
+    Just s' -> Just $ trace ("\n1: " ++ s) s ++ trace ("\n2: " ++ s') s'
+
 fvTestMonad :: IO ()
 fvTestMonad = let res = test
                 in print res
 
 test4 :: [Maybe [Char]]
-test4 = foldr (\a res -> let r = runTestMonad a 'a' 'b'
+test4 = let rr1 = foldr (\a res -> let r = runTestMonad a 'a' 'b'
                             in res ++ [r]) [] [test3 'g', test2]
+            rr2 = runTestMonad testStr 'a' 'b'
+            in case rr1 of
+              [] -> [Nothing]
+              [Nothing] -> [Nothing]
+              [Just rr1'] -> case rr2 of
+                Nothing -> [Nothing]
+                Just rr2' -> Just <$> (rr1': rr2')
+              _ -> [Nothing]

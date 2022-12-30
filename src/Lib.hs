@@ -1,5 +1,5 @@
 module Lib
-    ( someFunc
+    ( someFunc, getText3
     ) where
 
 import Db ( Db(Db) )
@@ -25,3 +25,8 @@ getText = return "meg valami"
 
 getText2 :: Db String
 getText2 = return " no meg valami"
+
+getText3 :: Db String
+getText3 = (++ "hello") <$> return "kukuriku"
+
+test1 = getContents

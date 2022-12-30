@@ -24,6 +24,10 @@ dependencies:
 - persistent
 - persistent-mysql
 - persistent-template
+- monad-logger
+- text
+- fmt
+- transformers
 
 ghc-options:
 - -Wall
