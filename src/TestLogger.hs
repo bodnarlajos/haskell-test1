@@ -1,28 +1,42 @@
-{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
 
-module TestLogger where
+module TestLogger(runProgram, MP(), DI(..)) where
 
 import Control.Monad.Logger
-    ( logDebug, runStdoutLoggingT, LoggingT )
-import Control.Monad.IO.Class (liftIO, MonadIO)
-import qualified Data.Text as T
+    ( runStdoutLoggingT, LoggingT )
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader
+import Db
+import Control.Monad.Trans.Class (lift)
+import Database.SQLite.Simple
 
--- https://github.com/hasura/haskell-server-boilerplate/blob/master/src/Hasura/HTTP/Server.hs
+data DI = DI { logFile :: FilePath, connStr :: String }
 
-newtype MyProgram m r a = MyProgram { runMyProgram :: LoggingT (ReaderT r m) a }
-  deriving (Generic, Functor, Applicative, Monad)
+type MP = LoggingT (ReaderT DI IO)
 
--- runTestLogger :: (MonadIO m) => m () -> m ()
--- runTestLogger method = do
---   result <- runStdoutLoggingT (run method)
---   return ()
---   where 
---     run :: ((T.Text -> IO ()) -> IO ()) -> LoggingT IO String
---     run method = do
---       l <- liftIO getLine
---       _ <- liftIO $ method $(logDebug)
---       $(logDebug) $ T.pack ("test it" ++ l)
---       return "valami"
+runProgram :: MP a ->  DI -> IO a
+runProgram worker di = liftIO $ runReaderT (runStdoutLoggingT worker) di
 
+instance Db MP where
+  readDb :: DbQuery -> MP [DbRow]
+  readDb query'' = do
+    connStr' <- connStr <$> lift ask
+    conn <- liftIO $ open connStr'
+    let query' = Query query''
+    res <- liftIO $ query_ conn query' :: MP [DbRow]
+    liftIO $ close conn
+    return res
+  writeDb query'' = do
+    connStr' <- connStr <$> lift ask
+    conn <- liftIO $ open connStr'
+    let query' = Query query''
+    liftIO $ execute conn query' ()
+    liftIO $ close conn
+  
+instance FromRow DbRow where
+  fromRow = DbRow <$> field <*> field
+
+instance Printer MP where
+  print a = liftIO $ Prelude.print a

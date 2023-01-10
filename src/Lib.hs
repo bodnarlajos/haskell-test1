@@ -1,32 +1,25 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Lib
-    ( someFunc, getText3
+    ( someFunc
     ) where
 
-import Db ( Db(Db) )
+import Db
+import TestLogger
+import Control.Monad.IO.Class (liftIO, MonadIO)
+import Data.Text (Text)
 
 someFunc :: IO ()
 someFunc = do
-    let (Db str) = getFromDb2 <> getFromDb
-    putStrLn str
+  result <- runProgram worker (DI "logfile" "./db.sqlite")
+  Prelude.print result
 
-getFromDb :: Db String
-getFromDb = let a = "Test"
-                b = "bakker"
-                in ((<>b<>a) <$> getText) <> getText2
-
-getFromDb2 :: Db String
-getFromDb2 = do
-    gt1 <- getText
-    gt2 <- getText2
-    return  $ gt1 <> gt2
-
-getText :: Db String
-getText = return "meg valami"
-
-getText2 :: Db String
-getText2 = return " no meg valami"
-
-getText3 :: Db String
-getText3 = (++ "hello") <$> return "kukuriku"
-
-test1 = getContents
+worker :: (Db m, Printer m) => m Text
+worker = do
+  res <- readDb "select * from test"
+  Db.print res
+  writeDb "insert into test(text) values('codebol')"
+  res' <- readDb "select * from test"
+  Db.print res'
+  return $ getText $ head res'
+  where
+    getText (DbRow _ txt) = txt

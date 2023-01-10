@@ -28,6 +28,7 @@ dependencies:
 - text
 - fmt
 - transformers
+- sqlite-simple
 
 ghc-options:
 - -Wall
