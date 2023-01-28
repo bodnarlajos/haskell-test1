@@ -1,37 +1,46 @@
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use newtype instead of data" #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module DbImpl where
 
 import Db
-import Database.SQLite.Simple (close, open, query_)
-import Database.SQLite.Simple.FromRow (FromRow(..), FromRow)
-import Database.SQLite.Simple (field)
-import TestLogger
+import DbEntities
+import Database.SQLite.Simple
+import Data.Text (unpack)
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad (ap)
+import Control.Applicative (liftA2)
 
-data DbImpl = DbImpl { dbPath :: FilePath }
+-- instance Applicative (Program IO) where
+--   pure = return
+--   (<*>) :: Program IO (a -> b) -> Program IO a -> Program IO b
+--   (<*>) = liftA2
 
-instance DbData DbImpl where
-  getConnStr = dbPath
+-- instance Monad (Program IO) where
+--   return :: a -> Program IO a
+--   return a = Program $ return a
+--   (>>=) :: Program IO a -> (a -> Program IO b) -> Program IO b
+--   a >>= fa = do
+--     a' <- a
+--     fa a'
 
-data DbRow = DbRow Int String deriving (Show)
+instance Printer IO where
+  print = Prelude.print
 
-instance FromRow DbRow where
-  fromRow = DbRow <$> field <*> field
-
-instance DbOperation IO where
-  readDb :: (DbData a) => a -> IO DbResult
-  readDb db = do
-    let sqlitePath = getConnStr db
-    conn <- open sqlitePath
-    res <- query_ conn "SELECT * FROM test" :: IO [DbRow]
-    close conn 
-    return $ DbResStrings $ map (\(DbRow i s) -> s) res
+instance Db IO where
+  readDb :: DbQuery -> IO [DbRow]
+  readDb queryStr = do
+    sqlitePath <- getConfig
+    let sqlitePath' = dbPath sqlitePath
+    conn <- liftIO $ open sqlitePath'
+    let q = read (unpack queryStr) :: Query
+    res <- liftIO $ query_ conn q :: IO [DbRow]
+    liftIO $ close conn 
+    return res
   writeDb _ = undefined
-
-instance DbOperation MP where
+  getConfig = return $ DbConfig "sqlite.db"
   
   
