@@ -1,5 +1,7 @@
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 module Lib
     ( someFunc
     ) where
@@ -7,8 +9,8 @@ module Lib
 import Db
 import Data.Text (Text)
 import DbEntities
-import TestLogger
 import Control.Monad.IO.Class (liftIO)
+import DbImpl (Program, runProgram)
 
 someFunc :: IO ()
 someFunc = do
@@ -17,14 +19,3 @@ someFunc = do
 
 start :: Program IO Text
 start = liftIO worker
-
-worker :: (Db m, Printer m) => m Text
-worker = do
-  res <- readDb "select * from test"
-  Db.print res
-  writeDb "insert into test(text) values('codebol')"
-  res' <- readDb "select * from test"
-  Db.print res'
-  return $ getText $ head res'
-  where
-    getText (DbRow _ txt) = txt

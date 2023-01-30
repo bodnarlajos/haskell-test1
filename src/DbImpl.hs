@@ -3,29 +3,24 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module DbImpl where
 
 import Db
 import DbEntities
 import Database.SQLite.Simple
-import Data.Text (unpack)
+import Data.Text (unpack, Text)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad (ap)
-import Control.Applicative (liftA2)
+import Control.Monad.Logger (LoggingT, runStdoutLoggingT)
+import Control.Monad.Trans.Reader (ReaderT, runReaderT)
+import Data.String (IsString(fromString))
 
--- instance Applicative (Program IO) where
---   pure = return
---   (<*>) :: Program IO (a -> b) -> Program IO a -> Program IO b
---   (<*>) = liftA2
+type Program m a = (Db m, Printer m, Monad m, Functor m, Applicative m) => LoggingT (ReaderT DI m) a
 
--- instance Monad (Program IO) where
---   return :: a -> Program IO a
---   return a = Program $ return a
---   (>>=) :: Program IO a -> (a -> Program IO b) -> Program IO b
---   a >>= fa = do
---     a' <- a
---     fa a'
+runProgram :: Program IO Text -> DI -> IO Text
+runProgram worker = runReaderT (runStdoutLoggingT worker)
 
 instance Printer IO where
   print = Prelude.print
@@ -36,11 +31,9 @@ instance Db IO where
     sqlitePath <- getConfig
     let sqlitePath' = dbPath sqlitePath
     conn <- liftIO $ open sqlitePath'
-    let q = read (unpack queryStr) :: Query
+    let q = fromString (unpack queryStr) :: Query
     res <- liftIO $ query_ conn q :: IO [DbRow]
     liftIO $ close conn 
     return res
   writeDb _ = undefined
-  getConfig = return $ DbConfig "sqlite.db"
-  
-  
+  getConfig = return $ DbConfig "/home/lajbo/Projects/haskell-projects/test1/db.sqlite"
