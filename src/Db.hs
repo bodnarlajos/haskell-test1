@@ -10,7 +10,6 @@ newtype DbConfig = DbConfig { dbPath :: FilePath }
 class (Monad m) => Db m where
   readDb :: DbQuery -> m [DbRow]
   writeDb :: DbQuery -> m ()
-  getConfig :: m DbConfig
 
 class (Monad m) => Printer m where
   print :: (Show a) => a -> m ()
@@ -19,7 +18,7 @@ worker :: (Db m, Printer m) => m Text
 worker = do
   res <- readDb "select * from test"
   Db.print res
-  -- writeDb "insert into test(text) values('codebol')"
+  writeDb "insert into test(text) values('new')"
   res' <- readDb "select * from test"
   Db.print res'
   return $ getText $ head res'
