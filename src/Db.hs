@@ -25,7 +25,7 @@ worker = do
   case writeWasOkay of
     Left err -> Db.print $ "There was an exception: " <> err
     Right _ -> return ()
-  res' <- readDb "select * from test"
+  res' <- readDb "select * from test where id = 2"
   case res' of
     Left err -> Db.print err
     Right res'' -> printRows res''
