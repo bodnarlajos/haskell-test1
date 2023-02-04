@@ -11,7 +11,7 @@ import DbImpl (Program, runProgram)
 
 someFunc :: IO ()
 someFunc = do
-  result <- runProgram start (DI "logfile" "./db.sqlite") :: IO Text
+  result <- runProgram start (DI "logfile.txt" "./db.sqlite") :: IO Text
   Prelude.print result
 
 start :: Program Text

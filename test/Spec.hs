@@ -1,4 +1,4 @@
-import Control.Exception (bracket, throw, SomeException (SomeException), Exception, catch)
+import Control.Exception (bracket, throw, SomeException (SomeException), Exception, catch, ArithException (DivideByZero))
 import Lib (someFunc)
 data MyException = MyException | MyBeginException deriving Show
 instance Exception MyException
@@ -10,5 +10,10 @@ instance Exception MyException
 --   print res
 --   print "test1 finish"
 
+-- main :: IO ()
+-- main = someFunc
+
 main :: IO ()
-main = someFunc
+main = do
+  res <- catch (throw Control.Exception.DivideByZero) (\e -> putStrLn (show (e :: SomeException)) >> return ())
+  return res
