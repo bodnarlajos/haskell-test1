@@ -1,5 +1,10 @@
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# OPTIONS_GHC -Wno-missing-methods #-}
 import Control.Exception (bracket, throw, SomeException (SomeException), Exception, catch, ArithException (DivideByZero))
 import Lib (someFunc)
+import Test.QuickCheck (quickCheck, Testable, Property)
+import Test.QuickCheck.Monadic
 data MyException = MyException | MyBeginException deriving Show
 instance Exception MyException
 
@@ -13,7 +18,26 @@ instance Exception MyException
 -- main :: IO ()
 -- main = someFunc
 
-main :: IO ()
+-- main :: IO ()
+-- main = do
+--   res <- catch (throw Control.Exception.DivideByZero) (\e -> putStrLn (show (e :: SomeException)) >> return ())
+--   return res
+
+newtype TestProgi a = TestProgi a deriving (Show, Functor, Applicative, Monad)
+
+test ::  Bool
+test = True
+
 main = do
-  res <- catch (throw Control.Exception.DivideByZero) (\e -> putStrLn (show (e :: SomeException)) >> return ())
-  return res
+  quickCheck test
+  quickCheck monadTest
+
+monadTest :: Property
+monadTest = monadicIO $ do 
+                          result <- run testIO
+                          assert (result == "valame")
+
+testIO :: IO String
+testIO = do
+  putStrLn "hello te lo testIO"
+  return "valamie"
