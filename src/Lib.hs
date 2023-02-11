@@ -10,14 +10,22 @@ import DbEntities
 import DbImpl (Program, runProgram)
 import RepositoryC
 import Repository
+import TestImpl
 
 someFunc :: IO ()
 someFunc = do
   result <- runProgram start (DI "logfile.txt" "./db.sqlite") :: IO Text
   Prelude.print result
 
+startTest :: TestProgram Text
+startTest = do
+  res <- runTestProgram worker
+  return res
+
 start :: Program Text
-start = worker
+start = do
+  _ <- worker
+  workerRepo
 
 workerRepo :: (Printer m, RepositoryC m) => m Text
 workerRepo = do
@@ -42,7 +50,7 @@ worker = do
   case res' of
     Left err -> Db.print err >> return empty
     Right value -> do
-                   Db.printRows value
+                   printRows value
                    return $ getText $ head value
   where
     getText (DbRow _ txt) = txt

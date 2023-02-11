@@ -29,6 +29,7 @@ dependencies:
 - fmt
 - transformers
 - sqlite-simple
+- QuickCheck
 
 ghc-options:
 - -Wall
