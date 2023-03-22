@@ -20,6 +20,7 @@ someFunc = do
 startTest :: TestProgram Text
 startTest = do
   res <- runTestProgram worker
+  res' <- workerRepo
   return res
 
 start :: Program Text
@@ -32,6 +33,17 @@ workerRepo = do
   (Data dataId dataText) <- getData 12
   Db.print $ pack ("workerRepo: " <> show dataId <> ", ") <> dataText
   return dataText
+
+worker2Test :: IO ()
+worker2Test = do
+  _ <- runProgram worker2 (DI "logfile.txt" "./db.sqlite")
+  return ()
+
+worker2 :: (Db m, Printer m, RepositoryC m) => m ()
+worker2 = do
+  Db.print "hello"
+  _ <- Db.writeDb "insert into test(text) values('worker2')"
+  return ()
 
 worker :: (Db m, Printer m, RepositoryC m) => m Text
 worker = do

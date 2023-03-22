@@ -21,7 +21,7 @@ import Control.Monad.Trans.Class (lift)
 
 type Program = LoggingT (ReaderT DI IO)
 
-runProgram :: Program Text -> DI -> IO Text
+runProgram :: Program a -> DI -> IO a
 runProgram worker = runReaderT (runStdoutLoggingT worker)
 
 instance Printer Program where

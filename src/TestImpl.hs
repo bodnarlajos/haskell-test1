@@ -27,16 +27,16 @@ instance Monad TestProgram where
 
 instance Db TestProgram where
   readDb :: Db m => DbQuery -> m (Either Text [DbRow])
-  readDb _ = return $ Right [(DbRow 1 "Test data")]
+  readDb _ = return $ Right [DbRow 1 "Test data"]
   writeDb :: DbQuery -> TestProgram (Either Text ())
   writeDb _ = return $ Right ()
-  
+
 instance Printer TestProgram where
   print :: Text -> TestProgram ()
   print _ = return ()
   printRows :: [DbRow] -> TestProgram ()
   printRows _ = return ()
-  
+
 instance RepositoryC TestProgram where
   getData :: RepositoryC.DataId -> TestProgram Data
   getData _ = return $ Data 1 "Test data"
