@@ -7,10 +7,11 @@ module Lib
 import Db
 import Data.Text (Text, empty, pack)
 import DbEntities
-import DbImpl (Program, runProgram)
+import DbImpl (Program, runProgram, ProgramC)
 import RepositoryC
-import Repository
 import TestImpl
+import Repository
+import Reflex
 
 someFunc :: IO ()
 someFunc = do
@@ -28,7 +29,7 @@ start = do
   _ <- worker
   workerRepo
 
-workerRepo :: (Printer m, RepositoryC m) => m Text
+workerRepo :: (ProgramC m) => m Text
 workerRepo = do
   (Data dataId dataText) <- getData 12
   Db.print $ pack ("workerRepo: " <> show dataId <> ", ") <> dataText
@@ -39,13 +40,13 @@ worker2Test = do
   _ <- runProgram worker2 (DI "logfile.txt" "./db.sqlite")
   return ()
 
-worker2 :: (Db m, Printer m, RepositoryC m) => m ()
+worker2 :: (ProgramC m) => m ()
 worker2 = do
   Db.print "hello"
   _ <- Db.writeDb "insert into test(text) values('worker2')"
   return ()
 
-worker :: (Db m, Printer m, RepositoryC m) => m Text
+worker :: (ProgramC m) => m Text
 worker = do
   (Data _ textFromData) <- getData 1
   Db.print textFromData
@@ -66,3 +67,5 @@ worker = do
                    return $ getText $ head value
   where
     getText (DbRow _ txt) = txt
+
+-- startReflex = mainWidget $ el "div" $ text "Welcome to Reflex"

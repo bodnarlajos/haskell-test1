@@ -5,20 +5,23 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 module DbImpl where
 
 import Db
 import DbEntities
 import Database.SQLite.Simple
-import Data.Text (unpack, Text, pack)
-import Control.Monad.IO.Class (liftIO)
+import Data.Text (unpack, Text, pack, empty)
+import Control.Monad.IO.Class (liftIO, MonadIO)
 import Control.Monad.Logger (LoggingT, runStdoutLoggingT, logDebugN)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
 import Data.String (IsString(fromString))
 import Control.Exception (bracket, SomeException (SomeException), catch, Exception (displayException), IOException)
 import Control.Monad.Trans.Class (lift)
+import RepositoryC (RepositoryC (getData), DataId, Data (Data))
 
+type ProgramC m = (Db m, Printer m, RepositoryC m)
 type Program = LoggingT (ReaderT DI IO)
 
 runProgram :: Program a -> DI -> IO a
@@ -38,6 +41,7 @@ instance Db Program where
       (\conn -> do
         res <- query_ conn q :: IO [DbRow]
         return $ Right res)) (\e -> return $ Left (pack (show (e :: SomeException))))
+        
   writeDb :: DbQuery -> Program (Either Text ())
   writeDb queryStr = do
     sqlitePath <- connStr <$> lift ask

@@ -1,6 +1,7 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 module TestImpl where
 
 import Db ( Printer (print, printRows), Db (readDb, writeDb), DbQuery )

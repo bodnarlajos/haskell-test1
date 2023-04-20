@@ -8,10 +8,9 @@ data TestGadts a where
   GI :: Int -> TestGadts Int
   GS :: String -> TestGadts String
 
-instance Functor TestGadts where
-  fmap :: (a -> b) -> TestGadts a -> TestGadts b
-  fmap fv (GI a) = _
-  fmap fv (GS a) = GS (fv a)
+-- instance Functor TestGadts where
+--   fmap :: (a -> b) -> TestGadts a -> TestGadts b
+--   fmap fv (GS a) = GS (fv a)
 
 instance Show (TestGadts a) where
   show :: TestGadts a -> String
